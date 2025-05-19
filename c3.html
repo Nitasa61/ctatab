@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#213448" />
+  <title>Catatan Keuangan</title>
+  <link rel="preload" as="audio" href="s.mp3" />
+  <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --warna-utama: #213448;
+      --warna-kedua: #134B70;
+      --warna-aksen: #508C9B;
+      --warna-putih: #EEEEEE;
+      --warna-emas: #FFD700;
+    }
+
+    * {
+      transition: all 0.3s ease;
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--warna-utama);
+      color: var(--warna-putih);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+      min-height: 100vh;
+    }
+
+    h1 {
+      color: var(--warna-putih);
+      margin-bottom: 0.5rem;
+    }
+
+    .created {
+      font-family: 'Pacifico', cursive;
+      font-size: 0.9rem;
+      color: var(--warna-emas);
+      animation: shimmer 2s infinite;
+      margin-bottom: 1.5rem;
+    }
+
+    @keyframes shimmer {
+      0% { text-shadow: 0 0 5px var(--warna-emas); }
+      50% { text-shadow: 0 0 20px var(--warna-emas), 0 0 30px var(--warna-emas); }
+      100% { text-shadow: 0 0 5px var(--warna-emas); }
+    }
+
+    .card {
+      background-color: var(--warna-kedua);
+      padding: 2rem;
+      border-radius: 1rem;
+      box-shadow: 0 0 15px rgba(0,0,0,0.2);
+      width: 100%;
+      max-width: 500px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: bold;
+    }
+
+    input[type="text"], input[type="number"], select {
+      width: 100%;
+      padding: 0.75rem;
+      margin-bottom: 1rem;
+      border: none;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+    }
+
+    button {
+      background-color: var(--warna-aksen);
+      color: var(--warna-putih);
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 1rem;
+      user-select: none;
+      outline: none;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: var(--warna-putih);
+      color: var(--warna-utama);
+    }
+
+    .filter {
+      margin-top: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .list {
+      margin-top: 1rem;
+      max-height: 250px;
+      overflow-y: auto;
+    }
+
+    .item {
+      background-color: var(--warna-utama);
+      padding: 1rem;
+      border-radius: 0.5rem;
+      margin-bottom: 0.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      opacity: 1;
+      transition: all 0.3s ease;
+    }
+
+    .item.hidden {
+      opacity: 0;
+      height: 0;
+      overflow: hidden;
+      padding: 0;
+      margin: 0;
+    }
+
+    .item span {
+      flex: 1;
+      word-break: break-word;
+    }
+
+    .hapus-btn {
+      background: none;
+      border: none;
+      color: #ff4d4d;
+      font-size: 1.3rem;
+      cursor: pointer;
+      margin-left: 1rem;
+      transition: color 0.3s ease;
+    }
+
+    .hapus-btn:hover {
+      color: #ff0000;
+    }
+
+    .total {
+      margin-top: 1rem;
+      font-size: 1.2rem;
+      font-weight: bold;
+      text-align: right;
+    }
+
+    #exportPDF {
+      margin-top: 1rem;
+      width: 100%;
+      padding: 0.75rem;
+      font-weight: bold;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      background-color: var(--warna-aksen);
+      color: var(--warna-putih);
+      border: none;
+      transition: background-color 0.3s ease;
+      user-select: none;
+      outline: none;
+    }
+
+    #exportPDF:hover {
+      background-color: var(--warna-putih);
+      color: var(--warna-utama);
+    }
+  </style>
+</head>
+<body>
+  <h1>Catatan Keuangan</h1>
+  <div class="created">Created by Fregianda</div>
+  <div class="card" id="areaKeuangan">
+    <label for="nama">Nama Pengeluaran</label>
+    <input type="text" id="nama" placeholder="Contoh: Makan siang" />
+
+    <label for="kategori">Kategori</label>
+    <select id="kategori">
+      <option value="Pokok">Pokok</option>
+      <option value="Bisnis">Bisnis</option>
+      <option value="Mining">Mining</option>
+      <option value="Lainnya">Lainnya</option>
+    </select>
+
+    <label for="jumlah">Jumlah (Rp)</label>
+    <input type="number" id="jumlah" placeholder="Contoh: 50000" />
+
+    <button onclick="tambahPengeluaran()">Tambah</button>
+
+    <div class="filter">
+      <label for="filterKategori">Filter Kategori</label>
+      <select id="filterKategori" onchange="filterPengeluaran()">
+        <option value="Semua">Semua</option>
+        <option value="Pokok">Pokok</option>
+        <option value="Bisnis">Bisnis</option>
+        <option value="Mining">Mining</option>
+        <option value="Lainnya">Lainnya</option>
+      </select>
+    </div>
+
+    <div class="list" id="daftarPengeluaran"></div>
+    <div class="total" id="totalPengeluaran">Total: Rp 0</div>
+    <button id="exportPDF" onclick="exportKePDF()">Export ke PDF</button>
+  </div>
+
+  <audio id="audioTambah" src="s.mp3"></audio>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+  <!-- jsPDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <script>
+    // Firebase config (ganti dengan config kamu)
+    const firebaseConfig = {
+      apiKey: "AIzaSyBpNoSzT0CQoLJVUBWZVwxgv6qrS87BWUs",
+      authDomain: "ctatan-f218f.firebaseapp.com",
+      projectId: "ctatan-f218f",
+      storageBucket: "ctatan-f218f.firebasestorage.app",
+      messagingSenderId: "465998313607",
+      appId: "1:465998313607:web:16247c0e853a8d2bb4a022"
+    };
+
+    // Inisialisasi Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    let total = 0;
+    let pengeluaranList = [];
+
+    // Load data dari Firestore saat halaman dibuka
+    window.onload = function () {
+      loadPengeluaran();
+    };
+
+    function tambahPengeluaran() {
+      const nama = document.getElementById("nama").value.trim();
+      const jumlah = parseFloat(document.getElementById("jumlah").value);
+      const kategori = document.getElementById("kategori").value;
+      const audio = document.getElementById("audioTambah");
+
+      if (!nama || isNaN(jumlah)) {
+        alert("Mohon isi nama, kategori, dan jumlah pengeluaran dengan benar.");
+        return;
+      }
+
+      audio.currentTime = 0;
+      audio.play();
+
+      // Simpan ke Firestore
+      db.collection("pengeluaran").add({
+        nama: nama,
+        kategori: kategori,
+        jumlah: jumlah,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      }).then(() => {
+        // Refresh data setelah tambah
+        loadPengeluaran();
+
+        // Reset input
+        document.getElementById("nama").value = "";
+        document.getElementById("jumlah").value = "";
+        document.getElementById("kategori").value = "Pokok";
+      }).catch(err => {
+        alert("Gagal menyimpan data: " + err.message);
+      });
+    }
+
+    function loadPengeluaran() {
+      db.collection("pengeluaran")
+        .orderBy("createdAt", "desc")
+        .get()
+        .then(snapshot => {
+          pengeluaranList = [];
+          total = 0;
+          const daftar = document.getElementById("daftarPengeluaran");
+          daftar.innerHTML = "";
+
+          snapshot.forEach(doc => {
+            const data = doc.data();
+            const id = doc.id;
+            if (!data.nama || !data.kategori || !data.jumlah) return;
+
+            pengeluaranList.push({
+              id: id,
+              nama: data.nama,
+              kategori: data.kategori,
+              jumlah: data.jumlah
+            });
+
+            total += data.jumlah;
+          });
+
+          updateDaftar();
+          updateTotal();
+          filterPengeluaran();
+        }).catch(err => {
+          alert("Gagal memuat data: " + err.message);
+        });
+    }
+
+    function updateDaftar() {
+      const daftar = document.getElementById("daftarPengeluaran");
+      daftar.innerHTML = "";
+
+      pengeluaranList.forEach(p => {
+        const item = document.createElement("div");
+        item.className = "item";
+        item.setAttribute("data-kategori", p.kategori);
+
+        const textSpan = document.createElement("span");
+        textSpan.innerText = `${p.nama} (${p.kategori}) - Rp ${p.jumlah.toLocaleString()}`;
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.className = "hapus-btn";
+        deleteBtn.innerHTML = "&times;";
+        deleteBtn.onclick = function () {
+          hapusPengeluaran(p.id);
+        };
+
+        item.appendChild(textSpan);
+        item.appendChild(deleteBtn);
+        daftar.appendChild(item);
+      });
+    }
+
+    function hapusPengeluaran(id) {
+      db.collection("pengeluaran").doc(id).delete()
+        .then(() => {
+          loadPengeluaran();
+        })
+        .catch(err => {
+          alert("Gagal menghapus data: " + err.message);
+        });
+    }
+
+    function filterPengeluaran() {
+      const selectedKategori = document.getElementById("filterKategori").value;
+      const daftar = document.getElementById("daftarPengeluaran");
+      const items = daftar.children;
+
+      let totalFiltered = 0;
+      for (let i = 0; i < pengeluaranList.length; i++) {
+        const p = pengeluaranList[i];
+        const item = items[i];
+        if (selectedKategori === "Semua" || p.kategori === selectedKategori) {
+          item.classList.remove("hidden");
+          totalFiltered += p.jumlah;
+        } else {
+          item.classList.add("hidden");
+        }
+      }
+
+      document.getElementById("totalPengeluaran").innerText = `Total: Rp ${totalFiltered.toLocaleString()}`;
+    }
+
+    function updateTotal() {
+      document.getElementById("totalPengeluaran").innerText = `Total: Rp ${total.toLocaleString()}`;
+    }
+
+    function exportKePDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.setFontSize(16);
+      doc.text("Catatan Keuangan", 10, 10);
+
+      let y = 20;
+      for (let i = 0; i < pengeluaranList.length; i++) {
+        const p = pengeluaranList[i];
+        const filterVal = document.getElementById("filterKategori").value;
+        if (filterVal === "Semua" || p.kategori === filterVal) {
+          doc.setFontSize(12);
+          doc.text(`${p.nama} (${p.kategori}) - Rp ${p.jumlah.toLocaleString()}`, 10, y);
+          y += 10;
+          if (y > 280) {
+            doc.addPage();
+            y = 10;
+          }
+        }
+      }
+      const totalText = `Total: Rp ${document.getElementById("totalPengeluaran").innerText.split(": ")[1]}`;
+      doc.setFontSize(14);
+      doc.text(totalText, 10, y + 10);
+      doc.save("catatan-keuangan.pdf");
+    }
+  </script>
+</body>
+</html>
